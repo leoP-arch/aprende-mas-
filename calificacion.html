@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprende + | Calificación</title>
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body data-page="calificacion">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-box">Aprende +</div>
+            <a href="index.html" class="nav-btn">Inicio</a>
+            <a href="examen.html" class="nav-btn">Examen</a>
+            <a href="calificacion.html" class="nav-btn active">Calificación</a>
+            <a href="tareas.html" class="nav-btn">Tareas</a>
+            <a href="blooket_quest.html" class="nav-btn">Juego</a>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar" style="justify-content: space-between;">
+                <h2>Aprende + | Historial en Base de Datos</h2>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <select id="filtro-tipo-calif" onchange="renderizarTablaCalificaciones()">
+                        <option value="Todos">Tipo: Exámenes y Tareas</option>
+                        <option value="Examen">Solo Exámenes</option>
+                        <option value="Tarea">Solo Tareas</option>
+                    </select>
+                    <label for="fecha-calif"><strong>Fecha:</strong></label>
+                    <input type="date" id="fecha-calif" onchange="renderizarTablaCalificaciones()">
+                    <button onclick="limpiarFiltroFecha()" style="padding: 8px 14px; font-size: 0.85rem;">Ver Todo</button>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3>Registro Oficial de Materias Evaluadas</h3>
+                    <span id="promedio-general-badge" class="gob-badge" style="font-size: 0.9rem; padding: 6px 14px;">Promedio General: --</span>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha / Hora</th>
+                            <th>Grado</th>
+                            <th>Materia / Tema</th>
+                            <th>Evaluación</th>
+                            <th>Aciertos</th>
+                            <th>Calificación Final</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-calificaciones-body">
+                        <tr>
+                            <td colspan="6" style="text-align: center;">Cargando registros desde la base de datos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="data_secundaria.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

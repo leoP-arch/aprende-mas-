@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blooket Quest - Trivia & Gold Rush</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        nunito: ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        blook: {
+                            purple: '#4f46e5',
+                            darkPurple: '#3730a3',
+                            accent: '#f59e0b',
+                            gold: '#fbbf24',
+                            pink: '#ec4899',
+                            cyan: '#06b6d4',
+                            green: '#10b981',
+                            red: '#ef4444'
+                        }
+                    },
+                    animation: {
+                        'bounce-short': 'bounce 0.5s ease-in-out 1',
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'wiggle': 'wiggle 0.3s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+
+        /* 3D Button Effects */
+        .btn-blook {
+            transition: all 0.1s ease;
+            box-shadow: 0 6px 0 0 rgba(0,0,0,0.3);
+        }
+        .btn-blook:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 0 rgba(0,0,0,0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+
+        /* Chest Flip Animation */
+        .chest-card {
+            perspective: 1000px;
+        }
+        .chest-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .chest-card.flipped .chest-inner {
+            transform: rotateY(180deg);
+        }
+        .chest-front, .chest-back {
+            backface-visibility: hidden;
+        }
+        .chest-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen overflow-x-hidden text-slate-100">
+    <a href="index.html" style="position: fixed; top: 15px; left: 15px; z-index: 9999; background: #1e293b; color: #38bdf8; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-family: sans-serif; font-weight: bold; border: 2px solid #38bdf8;">
+    ⬅ Volver a Aprende +
+</a>
+    <!-- Top Navigation Header -->
+    <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-indigo-900/50 px-4 py-3 sticky top-0 z-40 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-amber-400 to-amber-200 text-slate-900 rounded-xl p-2 font-black font-fredoka flex items-center gap-2 shadow-md">
+                <i class="fa-solid fa-cube text-xl"></i>
+                <span class="text-xl tracking-wide">BLOOKET QUEST</span>
+            </div>
+            <span id="header-mode-badge" class="hidden sm:inline-block bg-indigo-600/30 text-indigo-300 text-xs px-3 py-1 rounded-full font-bold border border-indigo-500/30">
+                Gold Rush Mode
+            </span>
+        </div>
+
+        <!-- User Stats Bar (Hidden in login) -->
+        <div id="header-stats" class="hidden flex items-center gap-4">
+            <!-- Streak -->
+            <div class="flex items-center gap-1.5 bg-orange-950/60 border border-orange-500/40 text-orange-400 font-extrabold px-3 py-1.5 rounded-xl text-sm">
+                <i class="fa-solid fa-fire text-orange-500 animate-pulse"></i>
+                <span id="header-streak">0</span>x
+            </div>
+            <!-- Gold Tokens -->
+            <div class="flex items-center gap-1.5 bg-amber-950/60 border border-amber-500/40 text-amber-300 font-extrabold px-3 py-1.5 rounded-xl text-sm">
+                <i class="fa-solid fa-coins text-amber-400"></i>
+                <span id="header-gold">0</span>
+            </div>
+            <!-- Current Blook Avatar -->
+            <div id="header-avatar" class="w-10 h-10 rounded-xl bg-indigo-900/80 p-1 border-2 border-indigo-400 flex items-center justify-center shadow-inner">
+                <!-- SVG Avatar inserted via JS -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Container -->
+    <main class="flex-grow flex items-center justify-center p-4 relative overflow-hidden">
+        
+        <!-- Floating background elements -->
+        <div class="absolute -top-10 -left-10 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 -right-10 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- 1. LOGIN & BLOOK SELECTION SCREEN -->
+        <section id="screen-login" class="w-full max-w-4xl bg-slate-800/80 backdrop-blur-xl border-2 border-indigo-500/30 rounded-3xl p-6 md:p-8 shadow-2xl flex flex-col gap-6 my-auto">
+            <div class="text-center space-y-2">
+                <h1 class="text-3xl md:text-5xl font-black font-fredoka bg-gradient-to-r from-amber-300 via-pink-400 to-indigo-300 bg-clip-text text-transparent">
+                    ¡Bienvenido a Blooket Quest!
+                </h1>
+                <p class="text-slate-300 text-sm md:text-base font-semibold">
+                    Elige tu nombre, selecciona tu Blook y prepárate para la batalla de conocimiento y oro.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                <!-- Left Panel: Name & Action -->
+                <div class="md:col-span-1 bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60 space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                            Tu Apodo / Nombre
+                        </label>
+                        <input type="text" id="input-username" maxlength="14" placeholder="Ej. BlookMaster" 
+                            class="w-full bg-slate-950 border-2 border-indigo-500/50 rounded-xl px-4 py-3 text-lg font-bold text-white focus:outline-none focus:border-amber-400 transition-colors placeholder-slate-600">
+                    </div>
+
+                    <div class="p-4 bg-indigo-950/40 rounded-xl border border-indigo-500/20 text-xs text-indigo-200 space-y-2">
+                        <div class="font-bold text-indigo-400 flex items-center gap-1.5 text-sm">
+                            <i class="fa-solid fa-gamepad"></i> Reglas del Juego:
+                        </div>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Responde preguntas antes de que acabe el tiempo.</li>
+                            <li>Acierta para abrir un <strong>Cofre Misterioso</strong>.</li>
+                            <li>Gana oro, duplica tus fichas o roba a otros.</li>
+                            <li>Visita la <strong>Tienda</strong> para comprar avatares raros.</li>
+                        </ul>
+                    </div>
+
+                    <button id="btn-start-game" class="btn-blook w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 border-b-4 border-emerald-800 text-white font-black text-xl py-4 rounded-2xl tracking-wide flex items-center justify-center gap-2">
+                        <span>¡JUGAR AHORA!</span>
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
+
+                <!-- Right Panel: Blook Avatar Picker -->
+                <div class="md:col-span-2 bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60 flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                            Selecciona tu Avatar (Blook Starter)
+                        </label>
+                        <span id="selected-blook-name" class="text-sm font-bold text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
+                            Dog
+                        </span>
+                    </div>
+
+                    <!-- Blooks Grid -->
+                    <div id="starter-blooks-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 2. TRIVIA QUIZ SCREEN -->
+        <section id="screen-quiz" class="hidden w-full max-w-4xl flex flex-col gap-5 my-auto">
+            
+            <!-- Top Quiz Status Bar -->
+            <div class="bg-slate-800/80 backdrop-blur-md border border-indigo-500/30 rounded-2xl p-4 flex flex-wrap justify-between items-center gap-3 shadow-lg">
+                <!-- Question Counter -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pregunta</span>
+                    <span id="quiz-progress-text" class="bg-indigo-600/40 text-indigo-200 font-extrabold px-3 py-1 rounded-xl border border-indigo-500/30 text-sm">
+                        1 / 10
+                    </span>
+                </div>
+
+                <!-- Timer Bar & Clock -->
+                <div class="flex-grow max-w-md mx-2">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                        <span class="text-slate-400"><i class="fa-regular fa-clock mr-1"></i>Tiempo Restante</span>
+                        <span id="timer-text" class="text-amber-400 font-black">15s</span>
+                    </div>
+                    <div class="w-full bg-slate-900 rounded-full h-3.5 p-0.5 border border-slate-700 overflow-hidden">
+                        <div id="timer-bar-inner" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-red-500 h-full rounded-full transition-all duration-100 ease-linear w-full"></div>
+                    </div>
+                </div>
+
+                <!-- Shop Quick Access Button -->
+                <button id="btn-open-shop-quiz" class="btn-blook bg-gradient-to-r from-amber-500 to-orange-600 border-b-4 border-amber-800 text-slate-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-store"></i>
+                    <span>Tienda</span>
+                </button>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-slate-800/90 backdrop-blur-xl border-2 border-indigo-500/30 rounded-3xl p-6 sm:p-8 text-center shadow-2xl relative overflow-hidden flex flex-col justify-center min-h-[200px]">
+                <!-- Category Tag -->
+                <span id="quiz-category" class="absolute top-4 left-4 bg-indigo-950 text-indigo-300 border border-indigo-500/30 text-[10px] sm:text-xs uppercase font-extrabold px-3 py-1 rounded-full">
+                    General
+                </span>
+                
+                <h2 id="quiz-question-text" class="text-xl sm:text-3xl font-black font-fredoka text-white leading-relaxed mt-4">
+                    Cargando pregunta...
+                </h2>
+            </div>
+
+            <!-- Answer Options Grid (Blooket Style Colors: Red, Blue, Yellow, Green) -->
+            <div id="quiz-answers-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Buttons dynamically generated -->
+            </div>
+
+            <!-- Feedback Alert Overlay (Invisible until answer clicked) -->
+            <div id="quiz-feedback-banner" class="hidden bg-slate-900/90 border-2 rounded-2xl p-4 text-center font-black font-fredoka text-xl flex items-center justify-center gap-3 animate-bounce-short">
+                <i id="feedback-icon" class="text-2xl"></i>
+                <span id="feedback-text">¡Correcto! +100 Oro</span>
+            </div>
+
+            <!-- Mini Live Leaderboard Banner below Quiz -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 flex items-center justify-between overflow-x-auto text-xs">
+                <span class="font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 min-w-max">
+                    <i class="fa-solid fa-trophy text-amber-400"></i> Tabla En Vivo:
+                </span>
+                <div id="mini-leaderboard" class="flex items-center gap-4 min-w-max font-bold">
+                    <!-- Dynamic mini leaderboard items -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 3. GOLD QUEST CHEST MINIGAME MODAL / OVERLAY -->
+        <section id="screen-chest" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-4">
+            <div class="text-center space-y-2 mb-8 animate-float">
+                <div class="inline-block bg-amber-400/20 text-amber-300 font-extrabold px-4 py-1.5 rounded-full border border-amber-400/30 text-sm mb-2">
+                    ¡Respuesta Correcta!
+                </div>
+                <h2 class="text-3xl sm:text-5xl font-black font-fredoka text-white">
+                    ¡ELIGE UN COFRE MISTERIOSO!
+                </h2>
+                <p class="text-slate-300 text-sm sm:text-base font-semibold">
+                    ¿Qué recompensa o sorpresa se oculta dentro?
+                </p>
+            </div>
+
+            <!-- 3 Chests Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-3xl">
+                <!-- Chest 1 -->
+                <div class="chest-card cursor-pointer group" onclick="game.selectChest(0)">
+                    <div id="chest-inner-0" class="chest-inner w-full h-56 sm:h-64 relative rounded-3xl">
+                        <!-- Front -->
+                        <div class="chest-front absolute inset-0 bg-gradient-to-b from-amber-600 to-amber-900 border-4 border-amber-400 rounded-3xl flex flex-col items-center justify-center p-4 shadow-2xl group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-box-archive text-6xl sm:text-7xl text-amber-200 drop-shadow-md mb-3"></i>
+                            <span class="font-black text-amber-100 text-xl font-fredoka">COFRE #1</span>
+                            <span class="text-xs font-bold text-amber-300/80 mt-1">Haz clic para abrir</span>
+                        </div>
+                        <!-- Back (Revealed Reward) -->
+                        <div id="chest-back-0" class="chest-back absolute inset-0 bg-slate-900 border-4 border-amber-400 rounded-3xl flex flex-col items-center justify-center p-4 text-center shadow-2xl">
+                            <!-- Populated on click -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chest 2 -->
+                <div class="chest-card cursor-pointer group" onclick="game.selectChest(1)">
+                    <div id="chest-inner-1" class="chest-inner w-full h-56 sm:h-64 relative rounded-3xl">
+                        <!-- Front -->
+                        <div class="chest-front absolute inset-0 bg-gradient-to-b from-amber-600 to-amber-900 border-4 border-amber-400 rounded-3xl flex flex-col items-center justify-center p-4 shadow-2xl group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-box-archive text-6xl sm:text-7xl text-amber-200 drop-shadow-md mb-3"></i>
+                            <span class="font-black text-amber-100 text-xl font-fredoka">COFRE #2</span>
+                            <span class="text-xs font-bold text-amber-300/80 mt-1">Haz clic para abrir</span>
+                        </div>
+                        <!-- Back -->
+                        <div id="chest-back-1" class="chest-back absolute inset-0 bg-slate-900 border-4 border-amber-400 rounded-3xl flex flex-col items-center justify-center p-4 text-center shadow-2xl">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chest 3 -->
+                <div class="chest-card cursor-pointer group" onclick="game.selectChest(2)">
+                    <div id="chest-inner-2" class="chest-inner w-full h-56 sm:h-64 relative rounded-3xl">
+                        <!-- Front -->
+                        <div class="chest-front absolute inset-0 bg-gradient-to-b from-amber-600 to-amber-900 border-4 border-amber-400 rounded-3xl flex flex-col items-center justify-center p-4 shadow-2xl group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-box-archive text-6xl sm:text-7xl text-amber-200 drop-shadow-md mb-3"></i>
+                            <span class="font-black text-amber-100 text-xl font-fredoka">COFRE #3</span>
+                            <span class="text-xs font-bold text-amber-300/80 mt-1">Haz clic para abrir</span>
+                        </div>
+                        <!-- Back -->
+                        <div id="chest-back-2" class="chest-back absolute inset-0 bg-slate-900 border-4 border-amber-400 rounded-3xl flex flex-col items-center justify-center p-4 text-center shadow-2xl">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Continue Button (Hidden until chest selected) -->
+            <button id="btn-continue-chest" class="hidden mt-8 btn-blook bg-emerald-500 hover:bg-emerald-400 border-b-4 border-emerald-800 text-slate-950 font-black text-xl px-8 py-3.5 rounded-2xl">
+                Siguiente Pregunta <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </section>
+
+
+        <!-- 4. SHOP / MARKET MODAL -->
+        <section id="screen-shop" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-4">
+            <div class="w-full max-w-4xl bg-slate-800/90 border-2 border-amber-500/40 rounded-3xl p-6 flex flex-col gap-5 max-h-[90vh] shadow-2xl overflow-hidden">
+                
+                <!-- Shop Header -->
+                <div class="flex justify-between items-center border-b border-slate-700/80 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-amber-500 text-slate-950 p-3 rounded-2xl text-2xl font-black">
+                            <i class="fa-solid fa-store"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl sm:text-3xl font-black font-fredoka text-white">Mercado de Blooks</h2>
+                            <p class="text-xs sm:text-sm text-slate-400">Desbloquea avatares exclusivos y potenciadores mágicos</p>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-close-shop" class="btn-blook bg-slate-700 hover:bg-slate-600 text-white font-bold p-3 rounded-2xl">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Shop Tabs -->
+                <div class="flex gap-3 border-b border-slate-700/50 pb-2">
+                    <button id="tab-shop-blooks" class="px-4 py-2 font-black rounded-xl bg-amber-500 text-slate-950 text-sm">
+                        <i class="fa-solid fa-shapes mr-1.5"></i> Blooks Exclusivos
+                    </button>
+                    <button id="tab-shop-powerups" class="px-4 py-2 font-black rounded-xl bg-slate-700 text-slate-300 text-sm hover:bg-slate-600">
+                        <i class="fa-solid fa-bolt mr-1.5"></i> Potenciadores
+                    </button>
+                </div>
+
+                <!-- Shop Items Container (Scrollable) -->
+                <div id="shop-items-container" class="overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 py-2">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 5. FINAL RESULTS & LEADERBOARD SCREEN -->
+        <section id="screen-results" class="hidden w-full max-w-4xl bg-slate-800/90 backdrop-blur-xl border-2 border-indigo-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-6 my-auto">
+            
+            <div class="text-center space-y-2">
+                <div class="inline-block bg-amber-400 text-slate-950 font-black px-4 py-1.5 rounded-full text-xs uppercase tracking-wider mb-1">
+                    ¡Fin de la Partida!
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-black font-fredoka bg-gradient-to-r from-amber-300 via-emerald-400 to-indigo-300 bg-clip-text text-transparent">
+                    RESUMEN DE RESULTADOS
+                </h1>
+            </div>
+
+            <!-- Main Performance Stats Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-700 text-center">
+                    <span class="block text-xs font-bold text-slate-400 uppercase">Oro Total</span>
+                    <span id="res-total-gold" class="text-2xl sm:text-3xl font-black text-amber-400 font-fredoka">0</span>
+                </div>
+                <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-700 text-center">
+                    <span class="block text-xs font-bold text-slate-400 uppercase">Precisión</span>
+                    <span id="res-accuracy" class="text-2xl sm:text-3xl font-black text-emerald-400 font-fredoka">0%</span>
+                </div>
+                <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-700 text-center">
+                    <span class="block text-xs font-bold text-slate-400 uppercase">Mejor Racha</span>
+                    <span id="res-best-streak" class="text-2xl sm:text-3xl font-black text-orange-400 font-fredoka">0x</span>
+                </div>
+                <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-700 text-center">
+                    <span class="block text-xs font-bold text-slate-400 uppercase">Posición Final</span>
+                    <span id="res-rank-placement" class="text-2xl sm:text-3xl font-black text-indigo-400 font-fredoka">#1</span>
+                </div>
+            </div>
+
+            <!-- Leaderboard Table -->
+            <div class="bg-slate-900/80 rounded-2xl p-5 border border-slate-700/80 space-y-3">
+                <h3 class="font-black text-lg text-white font-fredoka flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-400"></i> Clasificación Final de Jugadores
+                </h3>
+                <div id="final-leaderboard-list" class="space-y-2">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Buttons Action Row -->
+            <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                <button id="btn-restart-game" class="btn-blook flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 border-b-4 border-emerald-800 text-white font-black py-4 rounded-2xl text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Volver a Jugar</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Sound & Audio Controller (Web Audio API Synthesizer) -->
+    <script>
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playBeep(freq = 440, type = 'sine', duration = 0.15, vol = 0.1) {
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e){}
+            }
+
+            playCorrect() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playBeep(freq, 'triangle', 0.2, 0.15), idx * 70);
+                });
+            }
+
+            playWrong() {
+                this.init();
+                this.playBeep(220, 'sawtooth', 0.3, 0.2);
+                setTimeout(() => this.playBeep(180, 'sawtooth', 0.4, 0.2), 150);
+            }
+
+            playChestOpen() {
+                this.init();
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playBeep(freq, 'sine', 0.25, 0.15), idx * 90);
+                });
+            }
+
+            playClick() {
+                this.playBeep(600, 'sine', 0.05, 0.05);
+            }
+        }
+
+        const sound = new SoundEngine();
+    </script>
+
+    <!-- Vector SVG Definitions for Blooks -->
+    <script>
+        const BLOOK_DATA = {
+            dog: {
+                name: 'Perro',
+                bg: 'bg-amber-500',
+                rarity: 'Común',
+                cost: 0,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#f59e0b"/><ellipse cx="30" cy="40" rx="12" ry="20" fill="#78350f" transform="rotate(-15 30 40)"/><ellipse cx="70" cy="40" rx="12" ry="20" fill="#78350f" transform="rotate(15 70 40)"/><circle cx="35" cy="50" r="6" fill="#fff"/><circle cx="65" cy="50" r="6" fill="#fff"/><circle cx="35" cy="50" r="3" fill="#000"/><circle cx="65" cy="50" r="3" fill="#000"/><ellipse cx="50" cy="65" rx="14" ry="10" fill="#fef3c7"/><ellipse cx="50" cy="61" rx="6" ry="4" fill="#1e293b"/><path d="M 45 67 Q 50 74 55 67" stroke="#1e293b" stroke-width="3" fill="none"/></svg>`
+            },
+            robot: {
+                name: 'Robot',
+                bg: 'bg-cyan-500',
+                rarity: 'Común',
+                cost: 0,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#06b6d4"/><rect x="20" y="25" width="60" height="50" rx="10" fill="#e2e8f0"/><rect x="25" y="35" width="50" height="20" rx="5" fill="#0f172a"/><circle cx="38" cy="45" r="5" fill="#38bdf8"/><circle cx="62" cy="45" r="5" fill="#38bdf8"/><rect x="45" y="10" width="10" height="15" fill="#64748b"/><circle cx="50" cy="10" r="6" fill="#ef4444"/><rect x="35" y="62" width="30" height="4" rx="2" fill="#64748b"/></svg>`
+            },
+            dragon: {
+                name: 'Dragón',
+                bg: 'bg-emerald-600',
+                rarity: 'Raro',
+                cost: 0,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#059669"/><polygon points="20,25 35,10 40,30" fill="#f59e0b"/><polygon points="80,25 65,10 60,30" fill="#f59e0b"/><circle cx="35" cy="48" r="7" fill="#fef08a"/><circle cx="65" cy="48" r="7" fill="#fef08a"/><circle cx="35" cy="48" r="3" fill="#000"/><circle cx="65" cy="48" r="3" fill="#000"/><path d="M 40 65 Q 50 75 60 65" stroke="#047857" stroke-width="4" fill="none"/><path d="M 46 68 L 50 78 L 54 68" fill="#ef4444"/></svg>`
+            },
+            ufo: {
+                name: 'OVNI',
+                bg: 'bg-purple-600',
+                rarity: 'Raro',
+                cost: 0,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#7e22ce"/><path d="M 30 50 A 20 20 0 0 1 70 50 Z" fill="#a7f3d0" opacity="0.8"/><ellipse cx="50" cy="55" rx="35" ry="12" fill="#94a3b8"/><circle cx="30" cy="55" r="3" fill="#facc15"/><circle cx="50" cy="58" r="3" fill="#facc15"/><circle cx="70" cy="55" r="3" fill="#facc15"/><circle cx="50" cy="42" r="8" fill="#10b981"/><circle cx="47" cy="40" r="2" fill="#fff"/><circle cx="53" cy="40" r="2" fill="#fff"/></svg>`
+            },
+            panda: {
+                name: 'Panda',
+                bg: 'bg-slate-200',
+                rarity: 'Común',
+                cost: 0,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#f1f5f9"/><circle cx="25" cy="25" r="14" fill="#0f172a"/><circle cx="75" cy="25" r="14" fill="#0f172a"/><ellipse cx="35" cy="48" rx="10" ry="14" fill="#0f172a" transform="rotate(-15 35 48)"/><ellipse cx="65" cy="48" rx="10" ry="14" fill="#0f172a" transform="rotate(15 65 48)"/><circle cx="35" cy="48" r="4" fill="#fff"/><circle cx="65" cy="48" r="4" fill="#fff"/><ellipse cx="50" cy="62" rx="7" ry="5" fill="#0f172a"/></svg>`
+            },
+            astronaut: {
+                name: 'Astronauta',
+                bg: 'bg-blue-600',
+                rarity: 'Raro',
+                cost: 0,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#2563eb"/><circle cx="50" cy="50" r="32" fill="#e2e8f0"/><ellipse cx="50" cy="48" rx="24" ry="18" fill="#0f172a"/><path d="M 32 40 A 18 10 0 0 1 65 42" stroke="#38bdf8" stroke-width="3" fill="none" opacity="0.7"/></svg>`
+            },
+            ninja: {
+                name: 'Ninja',
+                bg: 'bg-slate-900',
+                rarity: 'Raro',
+                cost: 0,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#0f172a"/><rect x="15" y="35" width="70" height="22" rx="5" fill="#f87171"/><rect x="25" y="40" width="50" height="14" rx="4" fill="#fde047"/><circle cx="40" cy="47" r="4" fill="#000"/><circle cx="60" cy="47" r="4" fill="#000"/></svg>`
+            },
+            unicorn: {
+                name: 'Unicornio',
+                bg: 'bg-pink-500',
+                rarity: 'Épico',
+                cost: 0,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#ec4899"/><polygon points="50,8 43,30 57,30" fill="#facc15"/><circle cx="35" cy="52" r="6" fill="#000"/><circle cx="65" cy="52" r="6" fill="#000"/><circle cx="37" cy="50" r="2" fill="#fff"/><circle cx="67" cy="50" r="2" fill="#fff"/><ellipse cx="50" cy="68" rx="12" ry="8" fill="#fbcfe8"/><circle cx="45" cy="68" r="2" fill="#9d174d"/><circle cx="55" cy="68" r="2" fill="#9d174d"/></svg>`
+            },
+            // Shop Unlockable Blooks
+            lion: {
+                name: 'León Rey',
+                bg: 'bg-amber-600',
+                rarity: 'Épico',
+                cost: 400,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#d97706"/><circle cx="50" cy="50" r="36" fill="#78350f"/><circle cx="50" cy="50" r="26" fill="#fef08a"/><circle cx="38" cy="45" r="4" fill="#000"/><circle cx="62" cy="45" r="4" fill="#000"/><polygon points="50,52 44,60 56,60" fill="#78350f"/></svg>`
+            },
+            ghost: {
+                name: 'Fantasma',
+                bg: 'bg-indigo-900',
+                rarity: 'Épico',
+                cost: 750,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#312e81"/><path d="M 25 75 L 25 45 A 25 25 0 0 1 75 45 L 75 75 L 65 67 L 55 75 L 45 67 L 35 75 Z" fill="#f8fafc"/><ellipse cx="40" cy="45" rx="5" ry="8" fill="#0f172a"/><ellipse cx="60" cy="45" rx="5" ry="8" fill="#0f172a"/><ellipse cx="50" cy="58" rx="4" ry="6" fill="#0f172a"/></svg>`
+            },
+            trex: {
+                name: 'T-Rex',
+                bg: 'bg-lime-600',
+                rarity: 'Legendario',
+                cost: 1500,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#65a30d"/><circle cx="40" cy="45" r="6" fill="#fef08a"/><circle cx="40" cy="45" r="3" fill="#000"/><path d="M 25 60 L 75 60 L 70 70 L 30 70 Z" fill="#3f6212"/><polygon points="35,60 40,65 45,60" fill="#fff"/><polygon points="55,60 60,65 65,60" fill="#fff"/></svg>`
+            },
+            king: {
+                name: 'Rey Blook',
+                bg: 'bg-yellow-500',
+                rarity: 'Mítico',
+                cost: 3000,
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><rect width="100" height="100" rx="20" fill="#eab308"/><path d="M 25 35 L 35 15 L 50 30 L 65 15 L 75 35 Z" fill="#facc15" stroke="#b45309" stroke-width="3"/><circle cx="50" cy="30" r="4" fill="#ef4444"/><circle cx="38" cy="52" r="5" fill="#000"/><circle cx="62" cy="52" r="5" fill="#000"/><path d="M 40 68 Q 50 76 60 68" stroke="#78350f" stroke-width="4" fill="none"/></svg>`
+            }
+        };
+
+        const SHOP_POWERUPS = [
+            { id: 'double_points', name: 'Doble Oro', desc: 'Duplica las ganancias de tu próximo cofre', cost: 300, icon: 'fa-bolt text-amber-400' },
+            { id: 'shield', name: 'Escudo de Racha', desc: 'Protege tu racha ante 1 fallo', cost: 500, icon: 'fa-shield-halved text-cyan-400' },
+            { id: 'time_boost', name: 'Tiempo Extra', desc: '+5 segundos para responder cada pregunta', cost: 400, icon: 'fa-hourglass-half text-emerald-400' }
+        ];
+
+        // Question Bank (Spanish Trivia)
+        const QUESTION_BANK = [
+            {
+                q: '¿Cuál es el planeta más grande del sistema solar?',
+                options: ['Marte', 'Júpiter', 'Saturno', 'Neptuno'],
+                correct: 1,
+                cat: 'Ciencia'
+            },
+            {
+                q: '¿En qué año llegó el ser humano a la Luna?',
+                options: ['1965', '1969', '1975', '1980'],
+                correct: 1,
+                cat: 'Historia'
+            },
+            {
+                q: '¿Cuál es el animal terrestre más rápido del mundo?',
+                options: ['León', 'Gacela', 'Guepardo', 'Halcón'],
+                correct: 2,
+                cat: 'Naturaleza'
+            },
+            {
+                q: '¿Qué elemento químico tiene el símbolo "O"?',
+                options: ['Oro', 'Osmio', 'Oxígeno', 'Ohmio'],
+                correct: 2,
+                cat: 'Ciencia'
+            },
+            {
+                q: '¿Cuál es el océano más grande de la Tierra?',
+                options: ['Atlántico', 'Índico', 'Ártico', 'Pacífico'],
+                correct: 3,
+                cat: 'Geografía'
+            },
+            {
+                q: '¿Quién pintó la famosa obra "La Mona Lisa"?',
+                options: ['Vincent van Gogh', 'Leonardo da Vinci', 'Pablo Picasso', 'Claude Monet'],
+                correct: 1,
+                cat: 'Arte'
+            },
+            {
+                q: '¿Cuántos huesos tiene el cuerpo humano adulto?',
+                options: ['186', '206', '216', '300'],
+                correct: 1,
+                cat: 'Biología'
+            },
+            {
+                q: '¿Cuál es el país con mayor población del mundo?',
+                options: ['India', 'China', 'Estados Unidos', 'Brasil'],
+                correct: 0,
+                cat: 'Geografía'
+            },
+            {
+                q: '¿Qué lenguaje se usa principalmente para estructurar páginas Web?',
+                options: ['Python', 'HTML', 'C++', 'Java'],
+                correct: 1,
+                cat: 'Tecnología'
+            },
+            {
+                q: '¿Cuál es el metal más precioso y maleable?',
+                options: ['Plata', 'Cobre', 'Oro', 'Platino'],
+                correct: 2,
+                cat: 'Ciencia'
+            }
+        ];
+    </script>
+
+    <!-- Main Game Logic Script -->
+    <script>
+        class BlooketGame {
+            constructor() {
+                // Player State
+                this.playerName = 'Jugador 1';
+                this.selectedBlook = 'dog';
+                this.gold = 0;
+                this.streak = 0;
+                this.bestStreak = 0;
+                this.correctAnswers = 0;
+                this.totalAnswered = 0;
+                this.unlockedBlooks = ['dog', 'robot', 'dragon', 'ufo', 'panda', 'astronaut', 'ninja', 'unicorn'];
+                this.activePowerups = {
+                    double_points: false,
+                    shield: false,
+                    extra_time: 0
+                };
+
+                // Quiz State
+                this.currentQuestionIdx = 0;
+                this.timer = null;
+                this.timeLeft = 15;
+                this.maxTime = 15;
+                this.questions = [];
+
+                // Bots/AI Competitors State
+                this.bots = [
+                    { name: 'Luna_Blook', blook: 'unicorn', gold: 120 },
+                    { name: 'CyberBot', blook: 'robot', gold: 90 },
+                    { name: 'Draco_King', blook: 'dragon', gold: 150 },
+                    { name: 'NinjaX', blook: 'ninja', gold: 60 }
+                ];
+
+                this.initUI();
+            }
+
+            initUI() {
+                this.renderStarterBlooks();
+                this.bindEvents();
+            }
+
+            renderStarterBlooks() {
+                const grid = document.getElementById('starter-blooks-grid');
+                grid.innerHTML = '';
+
+                Object.keys(BLOOK_DATA).forEach(key => {
+                    const blook = BLOOK_DATA[key];
+                    if (blook.cost === 0) { // Starters
+                        const isSelected = this.selectedBlook === key;
+                        const card = document.createElement('div');
+                        card.className = `cursor-pointer p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${
+                            isSelected ? 'bg-indigo-900/80 border-amber-400 scale-105 shadow-lg' : 'bg-slate-800 border-slate-700 hover:border-indigo-400'
+                        }`;
+                        card.onclick = () => {
+                            sound.playClick();
+                            this.selectedBlook = key;
+                            document.getElementById('selected-blook-name').innerText = blook.name;
+                            this.renderStarterBlooks();
+                        };
+
+                        card.innerHTML = `
+                            <div class="w-16 h-16 sm:w-20 sm:h-20">
+                                ${blook.svg}
+                            </div>
+                            <span class="text-xs font-black text-slate-200">${blook.name}</span>
+                        `;
+                        grid.appendChild(card);
+                    }
+                });
+            }
+
+            bindEvents() {
+                // Start Game Button
+                document.getElementById('btn-start-game').onclick = () => {
+                    const nameInput = document.getElementById('input-username').value.trim();
+                    if (nameInput) this.playerName = nameInput;
+                    sound.playClick();
+                    this.startGame();
+                };
+
+                // Shop Buttons
+                document.getElementById('btn-open-shop-quiz').onclick = () => {
+                    sound.playClick();
+                    this.openShop();
+                };
+                document.getElementById('btn-close-shop').onclick = () => {
+                    sound.playClick();
+                    this.closeShop();
+                };
+                document.getElementById('tab-shop-blooks').onclick = () => this.switchShopTab('blooks');
+                document.getElementById('tab-shop-powerups').onclick = () => this.switchShopTab('powerups');
+
+                // Chest continue button
+                document.getElementById('btn-continue-chest').onclick = () => {
+                    sound.playClick();
+                    this.nextQuestion();
+                };
+
+                // Restart Game Button
+                document.getElementById('btn-restart-game').onclick = () => {
+                    sound.playClick();
+                    this.restart();
+                };
+            }
+
+            updateHeaderStats() {
+                document.getElementById('header-stats').classList.remove('hidden');
+                document.getElementById('header-gold').innerText = this.gold;
+                document.getElementById('header-streak').innerText = this.streak;
+                document.getElementById('header-avatar').innerHTML = BLOOK_DATA[this.selectedBlook].svg;
+            }
+
+            startGame() {
+                // Reset stats
+                this.gold = 0;
+                this.streak = 0;
+                this.bestStreak = 0;
+                this.correctAnswers = 0;
+                this.totalAnswered = 0;
+                this.currentQuestionIdx = 0;
+                
+                // Shuffle questions
+                this.questions = [...QUESTION_BANK].sort(() => 0.5 - Math.random());
+
+                // Hide login, show quiz
+                document.getElementById('screen-login').classList.add('hidden');
+                document.getElementById('screen-quiz').classList.remove('hidden');
+
+                this.updateHeaderStats();
+                this.loadQuestion();
+            }
+
+            loadQuestion() {
+                if (this.currentQuestionIdx >= this.questions.length) {
+                    this.endGame();
+                    return;
+                }
+
+                const q = this.questions[this.currentQuestionIdx];
+                
+                // Update Quiz Headers
+                document.getElementById('quiz-progress-text').innerText = `${this.currentQuestionIdx + 1} / ${this.questions.length}`;
+                document.getElementById('quiz-category').innerText = q.cat;
+                document.getElementById('quiz-question-text').innerText = q.q;
+
+                // Hide Feedback & Chest screen
+                document.getElementById('quiz-feedback-banner').classList.add('hidden');
+                document.getElementById('screen-chest').classList.add('hidden');
+
+                // Render Answers Grid (Blooket Vibrant Colors)
+                const container = document.getElementById('quiz-answers-container');
+                container.innerHTML = '';
+
+                const colors = [
+                    'from-red-500 to-rose-600 border-red-800 hover:from-red-400 hover:to-rose-500',
+                    'from-blue-500 to-indigo-600 border-blue-800 hover:from-blue-400 hover:to-indigo-500',
+                    'from-amber-500 to-yellow-600 border-amber-800 hover:from-amber-400 hover:to-yellow-500',
+                    'from-emerald-500 to-teal-600 border-emerald-800 hover:from-emerald-400 hover:to-teal-500'
+                ];
+                const shapes = ['fa-square', 'fa-circle', 'fa-triangle-exclamation', 'fa-diamond'];
+
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = `btn-blook w-full bg-gradient-to-r ${colors[idx]} border-b-4 text-white font-extrabold p-5 sm:p-6 rounded-2xl text-lg sm:text-xl flex items-center gap-4 text-left shadow-lg transition-all`;
+                    btn.onclick = () => this.answerQuestion(idx);
+
+                    btn.innerHTML = `
+                        <i class="fa-solid ${shapes[idx]} text-xl opacity-80"></i>
+                        <span class="flex-grow">${opt}</span>
+                    `;
+                    container.appendChild(btn);
+                });
+
+                // Start Timer
+                this.startTimer();
+                this.updateMiniLeaderboard();
+            }
+
+            startTimer() {
+                clearInterval(this.timer);
+                this.maxTime = 15 + (this.activePowerups.extra_time || 0);
+                this.timeLeft = this.maxTime;
+                
+                const timerBar = document.getElementById('timer-bar-inner');
+                const timerText = document.getElementById('timer-text');
+
+                const updateTimerDisplay = () => {
+                    timerText.innerText = `${Math.ceil(this.timeLeft)}s`;
+                    const pct = (this.timeLeft / this.maxTime) * 100;
+                    timerBar.style.width = `${pct}%`;
+                };
+
+                updateTimerDisplay();
+
+                this.timer = setInterval(() => {
+                    this.timeLeft -= 0.1;
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.answerQuestion(-1); // Timeout
+                    } else {
+                        updateTimerDisplay();
+                    }
+                }, 100);
+            }
+
+            answerQuestion(selectedIndex) {
+                clearInterval(this.timer);
+                this.totalAnswered++;
+
+                const q = this.questions[this.currentQuestionIdx];
+                const isCorrect = selectedIndex === q.correct;
+                const feedbackBanner = document.getElementById('quiz-feedback-banner');
+                const feedbackText = document.getElementById('feedback-text');
+                const feedbackIcon = document.getElementById('feedback-icon');
+
+                // Disable all answer buttons
+                const buttons = document.querySelectorAll('#quiz-answers-container button');
+                buttons.forEach(b => b.disabled = true);
+
+                // Simulate AI bot performance simultaneously
+                this.simulateBotTurns();
+
+                if (isCorrect) {
+                    sound.playCorrect();
+                    this.streak++;
+                    if (this.streak > this.bestStreak) this.bestStreak = this.streak;
+                    this.correctAnswers++;
+
+                    feedbackBanner.className = "mt-4 bg-emerald-950/90 border-2 border-emerald-500 rounded-2xl p-4 text-center font-black text-emerald-300 text-xl flex items-center justify-center gap-3 animate-bounce-short";
+                    feedbackIcon.className = "fa-solid fa-circle-check text-2xl text-emerald-400";
+                    feedbackText.innerText = `¡CORRECTO! Racha: ${this.streak}x`;
+                    feedbackBanner.classList.remove('hidden');
+
+                    this.updateHeaderStats();
+
+                    // Open Gold Quest Minigame after short delay
+                    setTimeout(() => {
+                        this.openChestMinigame();
+                    }, 1200);
+
+                } else {
+                    sound.playWrong();
+                    
+                    if (this.activePowerups.shield) {
+                        this.activePowerups.shield = false; // consume shield
+                        feedbackText.innerText = "¡INCORRECTO! Escudo activado - Racha protegida";
+                    } else {
+                        this.streak = 0;
+                        feedbackText.innerText = selectedIndex === -1 ? "¡TIEMPO AGOTADO!" : "¡INCORRECTO!";
+                    }
+
+                    feedbackBanner.className = "mt-4 bg-rose-950/90 border-2 border-rose-500 rounded-2xl p-4 text-center font-black text-rose-300 text-xl flex items-center justify-center gap-3 animate-bounce-short";
+                    feedbackIcon.className = "fa-solid fa-circle-xmark text-2xl text-rose-400";
+                    feedbackBanner.classList.remove('hidden');
+
+                    this.updateHeaderStats();
+
+                    // Advance to next question after 1.8 seconds
+                    setTimeout(() => {
+                        this.nextQuestion();
+                    }, 1800);
+                }
+            }
+
+            simulateBotTurns() {
+                this.bots.forEach(bot => {
+                    // 70% chance bot answers correctly
+                    if (Math.random() < 0.7) {
+                        const botGains = [50, 100, 150, 200, 300];
+                        const gain = botGains[Math.floor(Math.random() * botGains.length)];
+                        bot.gold += gain;
+                    }
+                });
+            }
+
+            updateMiniLeaderboard() {
+                const container = document.getElementById('mini-leaderboard');
+                container.innerHTML = '';
+
+                // Combine player and bots
+                const allPlayers = [
+                    { name: this.playerName, blook: this.selectedBlook, gold: this.gold, isPlayer: true },
+                    ...this.bots
+                ].sort((a, b) => b.gold - a.gold);
+
+                allPlayers.forEach((p, rank) => {
+                    const badge = document.createElement('div');
+                    badge.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-xl border ${
+                        p.isPlayer ? 'bg-indigo-900/90 border-amber-400 text-amber-300 font-black' : 'bg-slate-800 border-slate-700 text-slate-300'
+                    }`;
+                    badge.innerHTML = `
+                        <span class="text-xs text-slate-400">#${rank+1}</span>
+                        <div class="w-4 h-4">${BLOOK_DATA[p.blook].svg}</div>
+                        <span>${p.name}: ${p.gold}g</span>
+                    `;
+                    container.appendChild(badge);
+                });
+            }
+
+            // ----------------------------------------------------
+            // GOLD QUEST CHEST MINIGAME
+            // ----------------------------------------------------
+            openChestMinigame() {
+                const chestScreen = document.getElementById('screen-chest');
+                chestScreen.classList.remove('hidden');
+
+                // Reset chests UI
+                for (let i = 0; i < 3; i++) {
+                    const card = document.querySelectorAll('.chest-card')[i];
+                    card.classList.remove('flipped');
+                    card.style.pointerEvents = 'auto';
+                    document.getElementById(`chest-back-${i}`).innerHTML = '';
+                }
+
+                document.getElementById('btn-continue-chest').classList.add('hidden');
+            }
+
+            selectChest(selectedIndex) {
+                sound.playChestOpen();
+
+                // Generate random mystery rewards
+                const rewardPool = [
+                    { type: 'gold', amount: 150, title: '+150 ORO', icon: 'fa-coins text-amber-400' },
+                    { type: 'gold', amount: 300, title: '+300 ORO', icon: 'fa-sack-dollar text-amber-300' },
+                    { type: 'gold', amount: 500, title: '¡GRAN BOTÍN! +500 ORO', icon: 'fa-gem text-cyan-400' },
+                    { type: 'multiplier', factor: 2, title: '¡DOBLE ORO 2X!', icon: 'fa-bolt text-yellow-300' },
+                    { type: 'steal', pct: 0.25, title: '¡ROBO DE ORO 25%!', icon: 'fa-user-ninja text-purple-400' },
+                    { type: 'swap', title: '¡INTERCAMBIO DE ORO!', icon: 'fa-arrow-rotate-left text-emerald-400' }
+                ];
+
+                // Pick 3 random rewards
+                const chestRewards = [
+                    rewardPool[Math.floor(Math.random() * rewardPool.length)],
+                    rewardPool[Math.floor(Math.random() * rewardPool.length)],
+                    rewardPool[Math.floor(Math.random() * rewardPool.length)]
+                ];
+
+                // Flip and reveal all chests
+                for (let i = 0; i < 3; i++) {
+                    const card = document.querySelectorAll('.chest-card')[i];
+                    card.classList.add('flipped');
+                    card.style.pointerEvents = 'none';
+
+                    const back = document.getElementById(`chest-back-${i}`);
+                    const rew = chestRewards[i];
+
+                    back.innerHTML = `
+                        <i class="fa-solid ${rew.icon} text-5xl mb-2"></i>
+                        <span class="font-black font-fredoka text-lg text-amber-200">${rew.title}</span>
+                    `;
+
+                    // Apply chosen reward to player
+                    if (i === selectedIndex) {
+                        back.classList.add('border-4', 'border-emerald-400', 'bg-indigo-950');
+                        this.applyReward(rew);
+                    }
+                }
+
+                // Show continue button
+                document.getElementById('btn-continue-chest').classList.remove('hidden');
+            }
+
+            applyReward(rew) {
+                let multiplier = this.activePowerups.double_points ? 2 : 1;
+                this.activePowerups.double_points = false; // consume double points boost
+
+                if (rew.type === 'gold') {
+                    this.gold += (rew.amount * multiplier);
+                } else if (rew.type === 'multiplier') {
+                    this.gold = Math.round((this.gold * rew.factor) + 100);
+                } else if (rew.type === 'steal') {
+                    // Steal 25% from top bot
+                    const topBot = [...this.bots].sort((a,b) => b.gold - a.gold)[0];
+                    if (topBot && topBot.gold > 0) {
+                        const stolen = Math.round(topBot.gold * rew.pct);
+                        topBot.gold -= stolen;
+                        this.gold += stolen;
+                    } else {
+                        this.gold += 200;
+                    }
+                } else if (rew.type === 'swap') {
+                    // Swap gold with random bot
+                    const randomBot = this.bots[Math.floor(Math.random() * this.bots.length)];
+                    const temp = this.gold;
+                    this.gold = randomBot.gold;
+                    randomBot.gold = temp;
+                }
+
+                this.updateHeaderStats();
+            }
+
+            nextQuestion() {
+                this.currentQuestionIdx++;
+                this.loadQuestion();
+            }
+
+            // ----------------------------------------------------
+            // SHOP SYSTEM
+            // ----------------------------------------------------
+            openShop() {
+                document.getElementById('screen-shop').classList.remove('hidden');
+                this.renderShopItems('blooks');
+            }
+
+            closeShop() {
+                document.getElementById('screen-shop').classList.add('hidden');
+            }
+
+            switchShopTab(tab) {
+                sound.playClick();
+                const btnBlooks = document.getElementById('tab-shop-blooks');
+                const btnPowerups = document.getElementById('tab-shop-powerups');
+
+                if (tab === 'blooks') {
+                    btnBlooks.className = "px-4 py-2 font-black rounded-xl bg-amber-500 text-slate-950 text-sm";
+                    btnPowerups.className = "px-4 py-2 font-black rounded-xl bg-slate-700 text-slate-300 text-sm hover:bg-slate-600";
+                    this.renderShopItems('blooks');
+                } else {
+                    btnPowerups.className = "px-4 py-2 font-black rounded-xl bg-amber-500 text-slate-950 text-sm";
+                    btnBlooks.className = "px-4 py-2 font-black rounded-xl bg-slate-700 text-slate-300 text-sm hover:bg-slate-600";
+                    this.renderShopItems('powerups');
+                }
+            }
+
+            renderShopItems(tab) {
+                const container = document.getElementById('shop-items-container');
+                container.innerHTML = '';
+
+                if (tab === 'blooks') {
+                    Object.keys(BLOOK_DATA).forEach(key => {
+                        const blook = BLOOK_DATA[key];
+                        if (blook.cost > 0) {
+                            const isUnlocked = this.unlockedBlooks.includes(key);
+                            const canAfford = this.gold >= blook.cost;
+
+                            const item = document.createElement('div');
+                            item.className = "bg-slate-900 border border-slate-700 p-4 rounded-2xl flex flex-col items-center gap-3 text-center";
+                            
+                            item.innerHTML = `
+                                <div class="w-20 h-20">${blook.svg}</div>
+                                <div>
+                                    <h4 class="font-black text-white font-fredoka">${blook.name}</h4>
+                                    <span class="text-xs font-bold text-amber-400">${blook.rarity}</span>
+                                </div>
+                                <button ${isUnlocked || !canAfford ? 'disabled' : ''} onclick="game.buyBlook('${key}')" 
+                                    class="btn-blook w-full py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 ${
+                                        isUnlocked ? 'bg-slate-800 text-slate-500 border-0' :
+                                        canAfford ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-b-2 border-amber-800' : 'bg-slate-800 text-slate-400 border-0'
+                                    }">
+                                    ${isUnlocked ? '<i class="fa-solid fa-check"></i> Desbloqueado' : `<i class="fa-solid fa-coins"></i> Comprar ${blook.cost}g`}
+                                </button>
+                            `;
+                            container.appendChild(item);
+                        }
+                    });
+                } else {
+                    SHOP_POWERUPS.forEach(pw => {
+                        const canAfford = this.gold >= pw.cost;
+                        const item = document.createElement('div');
+                        item.className = "bg-slate-900 border border-slate-700 p-4 rounded-2xl flex flex-col items-center justify-between gap-3 text-center";
+
+                        item.innerHTML = `
+                            <div class="space-y-1">
+                                <i class="fa-solid ${pw.icon} text-4xl mb-1"></i>
+                                <h4 class="font-black text-white font-fredoka">${pw.name}</h4>
+                                <p class="text-xs text-slate-400">${pw.desc}</p>
+                            </div>
+                            <button ${!canAfford ? 'disabled' : ''} onclick="game.buyPowerup('${pw.id}', ${pw.cost})" 
+                                class="btn-blook w-full py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 ${
+                                    canAfford ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 border-b-2 border-emerald-800' : 'bg-slate-800 text-slate-400 border-0'
+                                }">
+                                <i class="fa-solid fa-coins"></i> Comprar ${pw.cost}g
+                            </button>
+                        `;
+                        container.appendChild(item);
+                    });
+                }
+            }
+
+            buyBlook(key) {
+                const blook = BLOOK_DATA[key];
+                if (this.gold >= blook.cost && !this.unlockedBlooks.includes(key)) {
+                    sound.playCorrect();
+                    this.gold -= blook.cost;
+                    this.unlockedBlooks.push(key);
+                    this.selectedBlook = key;
+                    this.updateHeaderStats();
+                    this.renderShopItems('blooks');
+                }
+            }
+
+            buyPowerup(id, cost) {
+                if (this.gold >= cost) {
+                    sound.playCorrect();
+                    this.gold -= cost;
+                    if (id === 'double_points') this.activePowerups.double_points = true;
+                    if (id === 'shield') this.activePowerups.shield = true;
+                    if (id === 'time_boost') this.activePowerups.extra_time += 5;
+
+                    this.updateHeaderStats();
+                    this.renderShopItems('powerups');
+                }
+            }
+
+            // ----------------------------------------------------
+            // END GAME & LEADERBOARD
+            // ----------------------------------------------------
+            endGame() {
+                document.getElementById('screen-quiz').classList.add('hidden');
+                document.getElementById('screen-chest').classList.add('hidden');
+                document.getElementById('screen-results').classList.remove('hidden');
+
+                // Stats calculation
+                const accuracy = this.totalAnswered > 0 ? Math.round((this.correctAnswers / this.totalAnswered) * 100) : 0;
+
+                // Sort final standings
+                const leaderboard = [
+                    { name: this.playerName, blook: this.selectedBlook, gold: this.gold, isPlayer: true },
+                    ...this.bots
+                ].sort((a, b) => b.gold - a.gold);
+
+                const playerRank = leaderboard.findIndex(p => p.isPlayer) + 1;
+
+                document.getElementById('res-total-gold').innerText = this.gold;
+                document.getElementById('res-accuracy').innerText = `${accuracy}%`;
+                document.getElementById('res-best-streak').innerText = `${this.bestStreak}x`;
+                document.getElementById('res-rank-placement').innerText = `#${playerRank}`;
+
+                // Render Final Leaderboard List
+                const list = document.getElementById('final-leaderboard-list');
+                list.innerHTML = '';
+
+                const rankMedals = ['🥇', '🥈', '🥉'];
+
+                leaderboard.forEach((p, idx) => {
+                    const row = document.createElement('div');
+                    row.className = `flex items-center justify-between p-3 rounded-xl border ${
+                        p.isPlayer ? 'bg-indigo-900/80 border-amber-400 font-extrabold' : 'bg-slate-950/60 border-slate-800'
+                    }`;
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 font-black text-center text-slate-300">
+                                ${rankMedals[idx] || `#${idx+1}`}
+                            </span>
+                            <div class="w-8 h-8">${BLOOK_DATA[p.blook].svg}</div>
+                            <span class="text-white">${p.name} ${p.isPlayer ? '(Tú)' : ''}</span>
+                        </div>
+                        <span class="font-black text-amber-400 font-fredoka">${p.gold} ORO</span>
+                    `;
+                    list.appendChild(row);
+                });
+            }
+
+            restart() {
+                document.getElementById('screen-results').classList.add('hidden');
+                document.getElementById('screen-login').classList.remove('hidden');
+                document.getElementById('header-stats').classList.add('hidden');
+            }
+        }
+
+        // Initialize Game Instance
+        let game;
+        window.onload = () => {
+            game = new BlooketGame();
+        };
+    </script>
+</body>
+</html>

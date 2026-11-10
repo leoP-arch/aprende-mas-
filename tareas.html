@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprende + | Tareas</title>
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body data-page="tareas">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-box">Aprende +</div>
+            <a href="index.html" class="nav-btn">Inicio</a>
+            <a href="examen.html" class="nav-btn">Examen</a>
+            <a href="calificacion.html" class="nav-btn">Calificación</a>
+            <a href="tareas.html" class="nav-btn active">Tareas</a>
+            <a href="blooket_quest.html" class="nav-btn">Juego</a>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <select id="grado-tareas" onchange="actualizarTemasTareas()">
+                    <option value="">-- Selecciona Grado --</option>
+                    <option value="1° de Secundaria">1° de Secundaria</option>
+                    <option value="2° de Secundaria">2° de Secundaria</option>
+                    <option value="3° de Secundaria">3° de Secundaria</option>
+                </select>
+
+                <select id="tema-tareas" onchange="cargarActividadesTarea()" disabled>
+                    <option value="">-- Selecciona Tema para abrir Tarea --</option>
+                </select>
+            </div>
+
+            <div class="content-box">
+                <h2 id="encabezado-tarea">Actividades de Reforzamiento</h2>
+                <p style="color: var(--texto-moka); margin-bottom: 15px;">
+                    Responde las actividades directamente en este espacio. Al calificar, tu nota se registrará automáticamente en la Base de Datos.
+                </p>
+
+                <div id="contenedor-preguntas-tarea" class="question-grid">
+                    <p>Elige un grado y un tema arriba para desplegar el cuaderno de actividades interactivas.</p>
+                </div>
+
+                <div id="acciones-tarea" style="margin-top: 25px; display: none;">
+                    <button class="primary-btn" onclick="calificarYGuardarTarea()">Calificar Tarea y Guardar en Base de Datos</button>
+                </div>
+
+                <div id="resultado-tarea-banner" class="feedback-banner"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="data_secundaria.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

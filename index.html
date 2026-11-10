@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprende + | Inicio</title>
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body data-page="inicio">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-box">Aprende +</div>
+            <a href="index.html" class="nav-btn active">Inicio</a>
+            <a href="examen.html" class="nav-btn">Examen</a>
+            <a href="calificacion.html" class="nav-btn">Calificación</a>
+            <a href="tareas.html" class="nav-btn">Tareas</a>
+            <a href="blooket_quest.html" class="nav-btn">Juego</a>
+        </aside>
+
+        <main class="main-content">
+            <!-- Barra superior jerárquica: Grado -> Tema -> Lección (bloqueada hasta elegir tema) -->
+            <div class="top-bar">
+                <select id="select-grado" onchange="actualizarTemasInicio()">
+                    <option value="">-- 1. Selecciona Grado (Secundaria) --</option>
+                    <option value="1° de Secundaria">1° de Secundaria</option>
+                    <option value="2° de Secundaria">2° de Secundaria</option>
+                    <option value="3° de Secundaria">3° de Secundaria</option>
+                </select>
+
+                <select id="select-tema" onchange="actualizarLeccionesInicio()" disabled>
+                    <option value="">-- 2. Selecciona Tema --</option>
+                </select>
+
+                <select id="select-leccion" onchange="cargarLeccion()" disabled>
+                    <option value="">-- 3. Selecciona Lección --</option>
+                </select>
+            </div>
+
+            <!-- Área de contenido educativo extenso (Ventana 1.1) -->
+            <div class="content-box" id="visor-leccion">
+                <div class="gob-header">
+                    <span class="gob-badge">Sistema Educativo Nacional • Educación Secundaria</span>
+                    <h2 id="titulo-tema">Selecciona un Grado y un Tema en la barra superior</h2>
+                    <p id="subtitulo-aprendizaje" style="color: var(--texto-moka); font-size: 0.92rem; margin-top: 5px;">
+                        El selector de lecciones se habilitará automáticamente en cuanto elijas un tema de estudio.
+                    </p>
+                </div>
+                <h3 id="titulo-leccion" style="margin-bottom: 14px;"></h3>
+                <div id="texto-leccion" class="leccion-cuerpo">
+                    <p>Aquí se desplegará el contenido curricular completo (5 lecciones oficiales por cada materia de 1°, 2° y 3° de Secundaria) con desarrollo teórico y glosario técnico.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="data_secundaria.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

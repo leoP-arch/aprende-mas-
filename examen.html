@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprende + | Examen</title>
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body data-page="examen">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-box">Aprende +</div>
+            <a href="index.html" class="nav-btn">Inicio</a>
+            <a href="examen.html" class="nav-btn active">Examen</a>
+            <a href="calificacion.html" class="nav-btn">Calificación</a>
+            <a href="tareas.html" class="nav-btn">Tareas</a>
+            <a href="blooket_quest.html" class="nav-btn">Juego</a>
+        </aside>
+
+        <main class="main-content">
+            <h2>Evaluación Sumativa (Examen)</h2>
+
+            <div class="top-bar">
+                <select id="grado-examen" onchange="actualizarMateriasExamen()">
+                    <option value="">-- Selecciona Grado --</option>
+                    <option value="1° de Secundaria">1° de Secundaria</option>
+                    <option value="2° de Secundaria">2° de Secundaria</option>
+                    <option value="3° de Secundaria">3° de Secundaria</option>
+                </select>
+
+                <select id="materia-examen" disabled style="flex: 1;">
+                    <option value="">-- Primero elige un grado --</option>
+                </select>
+
+                <button class="primary-btn" id="btn-comenzar-examen" onclick="iniciarExamen()" disabled>Comenzar Examen</button>
+                <div class="timer-box">Tiempo: <span id="tiempo-restante">08:00</span></div>
+            </div>
+
+            <div class="content-box" id="contenedor-examen">
+                <p>Selecciona tu grado de secundaria y la materia, luego presiona <strong>"Comenzar Examen"</strong> para mostrar todos los reactivos en sus cajones.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="data_secundaria.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
